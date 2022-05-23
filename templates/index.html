@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+
+{% block content %}
+    <div class="site-blocks-cover" style="background-image: url({% static 'images/boutique.jpg' %});" data-aos="fade">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 pt-5 pt-md-0">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="site-section site-section-sm site-blocks-1">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-4 d-lg-flex mb-lg-0 pl-4" data-aos="fade-up">
+                    <div class="icon mr-4 align-self-start">
+                        <span><i class="fab fa-cc-inpay"></span>
+                    </div>
+                    <div class="text">
+                        <h2 class="text-uppercase">Pay With Inpay</h2>
+                        <p>User server-side Inpay integration for handling payments.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}

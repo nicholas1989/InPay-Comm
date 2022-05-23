@@ -39,7 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    
+    'crispy_forms',
+    
+    'core',
 ]
+
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+NOTIFY_EMAIL = env('NOTIFY_EMAIL')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -102,6 +110,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -139,7 +149,7 @@ if DEBUG is False:
     ALLOWED_HOSTS = ['www.inpay.interranetworks.com']
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     
-    
+"""   
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -150,6 +160,7 @@ DATABASES = {
         'PORT': ''
     }
 }
+"""
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
