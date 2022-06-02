@@ -10,4 +10,5 @@ urlpatterns = [
     path('increase-quantity/<pk>/', views.IncreaseQuantityView.as_view(), name='increase-quantity'),
     path('decrease-quantity/<pk>/', views.DecreaseQuantityView.as_view(), name='decrease-quantity'),
     path('remove-from-cart/<pk>/', views.RemoveFromCartView.as_view(), name='remove-from-cart'),
+    path('checkout/', views.CheckoutView.as_view(), name='checkout'),
 ]
