@@ -1,11 +1,28 @@
+import json
+import datetime
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 from django.contrib import messages
 from django.views import generic
+from credo.customers import Customers
+from credo.payment import Payment
+from credo.payment_link import PaymentLink
+from django.conf import settings
 from .models import Product, OrderItem, Address
+#from .payment import Payment
+from core.models import Customer
 from .forms import AddToCartForm, AddressForm
 from django.shortcuts import get_object_or_404, reverse, redirect
 from .utils import get_or_set_order_session
 
+
+#_link = PaymentLink(public_key='settings.ETRANZACT_PUBLIC_KEY', secret_key='settings.ETRANZACT_SECRET_KEY')
+
+
+customers = Customers(public_key = 'settings.ETRANZACT_PUBLIC_KEY', secret_key = 'settings.ETRANZACT_SECRET_KEY')
+
+payment = Payment(public_key='settings.ETRANZACT_PUBLIC_KEY', secret_key='settings.ETRANZACT_SECRET_KEY')
 
 # Create your views here.
 class ProductListView(generic.ListView):
@@ -99,15 +116,16 @@ class CheckoutView(generic.FormView):
     form_class = AddressForm
 
     def get_success_url(self):
-        return reverse("home")  # TODO: payment
+        return reverse("cart:initiate-payment")  
 
     def form_valid(self, form):
         order = get_or_set_order_session(self.request)
+        
         selected_shipping_address = form.cleaned_data.get(
             'selected_shipping_address')
         selected_billing_address = form.cleaned_data.get(
             'selected_billing_address')
-
+        
         if selected_shipping_address:
             order.shipping_address = selected_shipping_address
         else:
@@ -149,4 +167,64 @@ class CheckoutView(generic.FormView):
         context["order"] = get_or_set_order_session(self.request)
         return context
     
+
+class PaymentView(generic.TemplateView):
+    template_name = 'cart/initiate-payment.html'
+    
+    
+    def get_context_data(self, **kwargs):
+        user = self.request.user
+        if not user.customer:
+            credo_customer = customers.add(
+                full_name=user.username, email=user.email, phone_number=None, 
+                billing_address1=None, billing_address2=None, 
+                district=None, state=None
+            )
+            user.customer = credo_customer["id"]
+            user.customer.save()
+            
+        context = super(PaymentView, self).get_context_data(**kwargs)
+        context["order"] = get_or_set_order_session(self.request)
+        context["ETRANZACT_PUBLIC_KEY"] = settings.ETRANZACT_PUBLIC_KEY
+        return context 
+    
+    
+class ConfirmPaymentView(generic.View):
+    def post(self, request, *args, **kwargs):
+        order = get_or_set_order_session(self.request)
+        user = self.request.user
+        
+        
+        if new_payment:
+        
+            new_payment = payment.initiate_payment(
+                amount = order.get_raw_total(), currency='NGN', 
+                customer_name = user.customer, customer_email= user.customer.email, 
+                customer_phone= None, trans_ref=self.ref, 
+                payment_options='CARD,BANK', redirect_url='https://github.com/BdVade/credo-python'
+            )
+        
+            new_payment.save()
+        verified = payment.verify_payment(transaction_reference=self.ref)
+        if verified:
+            new_payment = order
+            order.ordered = True
+            order.ordered_date = datetime.date.today()
+            order.save()
+        return JsonResponse({"data": "Success"})
+    
+    
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    
+
+        
     

@@ -1,4 +1,8 @@
 from .models import Order
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 
 def get_or_set_order_session(request):
@@ -22,4 +26,6 @@ def get_or_set_order_session(request):
         order.save()
     return order
         
+    
+
     

@@ -41,12 +41,29 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     
+    'django.contrib.sites',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    
     'crispy_forms',
     
     'core',
     
     'cart',
+    
+    'merchant',
 ]
+
+SITE_ID = 1
+
+
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+LOGIN_REDIRECT_URL = '/'
 
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 NOTIFY_EMAIL = env('NOTIFY_EMAIL')
@@ -114,6 +131,16 @@ AUTH_PASSWORD_VALIDATORS = [
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
+
+AUTHENTICATION_BACKENDS = [
+    
+    'django.contrib.auth.backends.ModelBackend',
+    
+    'allauth.account.auth_backends.AuthenticationBackend',
+    
+]
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -135,6 +162,10 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "static_root")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+
+ETRANZACT_PUBLIC_KEY = env('ETRANZACT_PUBLIC_KEY')
+ETRANZACT_SECRET_KEY = env('ETRANZACT_SECRET_KEY')
 
 
 if DEBUG is False:
@@ -168,3 +199,6 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+

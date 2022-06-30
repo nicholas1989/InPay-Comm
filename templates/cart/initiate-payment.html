@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block extra_head %}
+<style>
+    .lds-dual-ring {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+      }
+      .lds-dual-ring:after {
+        content: " ";
+        display: block;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border-radius: 50%;
+        border: 6px solid #cef;
+        border-color: #cef transparent #cef transparent;
+        animation: lds-dual-ring 1.2s linear infinite;
+      }
+      @keyframes lds-dual-ring {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      
+</style>
+{% endblock extra_head %}
+
+{% block content %}
+    <div class="bg-light py-3">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 mb-0">
+                    <a href="{% url 'home' %}">Home</a><span class="mx-2 mb-0">/</span>
+                    <a href="{% url 'cart:summary' %}" class="text-black">Cart</a><span class="mx-2 mb-0">/</span>
+                    <a href="{% url 'cart:checkout' %}" class="text-black">Checkout</a><span class="mx-2 mb-0">/</span>
+                    <a href="{% url 'cart:initiate-payment' %}" class="text-black">Initiate Payment</a><span class="mx-2 mb-0">/</span>
+                    <strong class="text-black">Make Payment</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <br/>
+                <h5>Make Payment: ₦ {{ order.get_total }}</h5>
+                <br/>
+                <form>
+                    <script src="https://credocentral.com/inline.js"></script>
+                    <button class="btn btn-primary btn-lg btn-block" type="button" onClick="makePayment()">Pay Now</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% block scripts %}
+    <script>
+        function makePayment() {
+            CredoCheckout({
+              transRef: "{{ payment.ref }}", 
+              amount: "{{ order.get_total }}",
+              redirectUrl: "https://merchant-test-line.netlify.app/successful",
+              paymentOptions: ["CARDS", "BANK"],
+              currency: "NGN",
+              customerName: "{{ user.customer }}",
+              customerEmail: "{{ payment.email }}",
+              customerPhoneNo: "{{ payment.phone_number }}",
+              onClose: function(){
+                  console.log("Modal closed")
+              },
+              callback: function(){
+                  console.log("Payment Successful");
+              },
+              publicKey: "pk_demo-IxzYkKsSsnarRMGwGP1xtuVhlg8S0c.pR4I3UPgLw-d" 
+            });
+        }
+       
+      
+    </script>
+{% endblock scripts %}
+
+
+{% endblock content %}
+

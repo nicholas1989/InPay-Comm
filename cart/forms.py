@@ -1,12 +1,17 @@
+from dataclasses import fields
+from .utils import get_or_set_order_session
 from django.contrib.auth import get_user_model
 from django import forms
 from .models import (
     OrderItem, 
+    Order,
     ColourVariation, 
     Product, 
     SizeVariation, 
-    Address
+    Address,
+    Payment
 )
+
 
 User = get_user_model()
 
@@ -28,7 +33,6 @@ class AddToCartForm(forms.ModelForm):
         
         
 class AddressForm(forms.Form):
-
     shipping_address_line_1 = forms.CharField(required=False)
     shipping_address_line_2 = forms.CharField(required=False)
     shipping_zip_code = forms.CharField(required=False)
@@ -51,7 +55,7 @@ class AddressForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         user = User.objects.get(id=user_id)
-
+        
         shipping_address_qs = Address.objects.filter(
             user=user,
             address_type='S'
@@ -68,7 +72,7 @@ class AddressForm(forms.Form):
         data = self.cleaned_data
 
         selected_shipping_address = data.get('selected_shipping_address', None)
-        if selected_shipping_address is None:
+        if selected_shipping_address is None:    
             if not data.get('shipping_address_line_1', None):
                 self.add_error("shipping_address_line_1",
                                "Please fill in this field")
@@ -94,3 +98,52 @@ class AddressForm(forms.Form):
                                "Please fill in this field")
             if not data.get('billing_city', None):
                 self.add_error("billing_city", "Please fill in this field")
+                
+                
+'''
+class PaymentForm(forms.ModelForm):
+    selected_amount = forms.ModelChoiceField(queryset=Payment.objects.none())
+    class Meta:
+        model = Payment
+        fields = ("customer_name", "email", "amount", "order", "phone_number")
+        
+    def __init__(self, *args, **kwargs):
+        order_id = kwargs.pop('order_id')
+        super().__init__(*args, **kwargs)
+        order = get_or_set_order_session(self.request).get('order_id')
+        
+        amount_qs = order.get
+        
+        self.fields['amount'].queryset = amount_qs
+        
+    def clean(self):
+        data = self.cleaned_data
+            
+'''        
+        
+        
+        
+        
+        
+        
+    
+    
+        
+    
+        
+        
+        
+    
+    
+        
+        
+        
+        
+            
+        
+        
+        
+    
+        
+
+        

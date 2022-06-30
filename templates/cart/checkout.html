@@ -67,19 +67,19 @@
                                                 <strong class="mx-2">x</strong> {{ item.quantity }}
                                             </td>
                                             <td>
-                                                ${{ item.get_total_item_price }}
+                                                ₦{{ item.get_total_item_price }}
                                             </td>
                                         </tr>
                                         {% endfor %}
                                         <tr>
                                             <td><strong>Subtotal</strong></td>
-                                            <td>${{ order.get_subtotal }}</td>
+                                            <td>₦{{ order.get_subtotal }}</td>
                                         </tr>
                                         <tr>
                                             <td><strong class="text-black font-weight-bold">Order Total</strong></td>
                                             <td>
                                                 <strong class="text-black font-weight-bold">
-                                                    ${{ order.get_total }}
+                                                    ₦{{ order.get_total }}
                                                 </strong>
                                             </td>
                                         </tr>

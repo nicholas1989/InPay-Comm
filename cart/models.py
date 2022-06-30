@@ -1,11 +1,18 @@
+import secrets
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.utils.text import slugify
+#from credo.payment import Payment
+#from core.models import InPayCustomer
 from django.shortcuts import reverse
+from .payment import Payment
+
 
 
 User = get_user_model()
+
+#payment = Payment(public_key='settings.ETRANZACT_PUBLIC_KEY', secret_key='settings.ETRANZACT_SECRET_KEY')
 
 
 class Address(models.Model):
@@ -64,6 +71,12 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse("cart:product-detail", kwargs={'slug': self.slug})
     
+    def get_update_url(self):
+        return reverse("merchant:product-update", kwargs={'pk': self.pk})
+    
+    def get_delete_url(self):
+        return reverse("merchant:product-delete", kwargs={'pk': self.pk})
+    
     def get_price(self):
         return "{:.2f}".format(self.price / 100)
     
@@ -89,8 +102,8 @@ class Order(models.Model):
     user = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
     start_date = models.DateTimeField(auto_now_add=True)
     ordered_date = models.DateTimeField(blank=True, null=True)
+    #payment = models.ForeignKey("Payment", on_delete=models.CASCADE, related_name="paid_intent", blank=True, null=True)
     ordered = models.BooleanField(default=False)
-    
     billing_address = models.ForeignKey(
         Address, related_name='billing_address', blank=True, null=True, on_delete=models.SET_NULL)
     shipping_address = models.ForeignKey(
@@ -109,6 +122,25 @@ class Order(models.Model):
             total += order_item.get_raw_total_item_price()
         return total
     
+    def get_customer_name(self):
+        customer_name = ""
+        for customer in self.customerorder.all():
+            customer_name = customer.customer_name
+        return customer_name
+    
+    
+    def get_customer_email(self):
+        email = ""
+        for customer in self.customerorder.all():
+            email = customer.email
+        return email
+    
+    def get_customer_phone_number(self):
+        phone_number = ""
+        for customer in self.customerorder.all():
+            phone_number = customer.phone_number
+        return phone_number
+    
     def get_subtotal(self):
         subtotal = self.get_raw_subtotal()
         return "{:.2f}".format(subtotal / 100)
@@ -125,25 +157,55 @@ class Order(models.Model):
     
     
 class Payment(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='payments')
-    payment_method = models.CharField(max_length=20, choices=(
-        ('ETRANZACT', 'ETRANZACT'),
-    ))
-    timestamp = models.DateTimeField(auto_now_add=True)
-    successful = models.BooleanField(default=False)
+    user = models.ForeignKey(User, blank=True, null=True, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True, blank=True, related_name="intent")
     amount = models.FloatField()
-    raw_response = models.TextField()
+    ref = models.CharField(max_length=100)
+    verified = models.BooleanField(default=False)
     
     def __str__(self):
-        return self.reference_number
+        return self.ref
     
-    @property
-    def reference_number(self):
-        return f"PAYMENT-{self.order}-{self.pk}"
+   # @property
+    #def reference_number(self):
+    #    return f"PAYMENT-{self.order}-{self.pk}"
     
+    def save(self, *args, **kwargs):
+        while not self.ref:
+            ref = secrets.token_urlsafe(50)
+            object_with_similar_ref = Payment.objects.filter(ref=ref)
+            if not object_with_similar_ref:
+                self.ref = ref
+        super().save(*args, **kwargs)
+        
+    def get_amount(self):
+        amount = 0
+        for order in self.paid_intent.all():
+            amount = order.get_total()
+        return amount
+    
+    def verify_payment(self):
+        payment = Payment()
+        status, verify_payment = payment.verify_payment(self.ref, self.amount)
+        if status:
+            if verify_payment['amount'] == self.amount:
+                self.verified = True
+            self.save()
+        if self.verified:
+            return True
+        return False
+
     
     def pre_save_product_receiver(sender, instance, *args, **kwargs):
         if not instance.slug:
             instance.slug = slugify(instance.title)
             
     pre_save.connect(pre_save_product_receiver, sender=Product)
+    
+    
+    
+
+    
+    
+    
+    
