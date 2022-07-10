@@ -1,4 +1,5 @@
 import secrets
+from tabnanny import verbose
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models.signals import pre_save, post_save
@@ -13,6 +14,19 @@ from .payment import Payment
 User = get_user_model()
 
 #payment = Payment(public_key='settings.ETRANZACT_PUBLIC_KEY', secret_key='settings.ETRANZACT_SECRET_KEY')
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+    
+    
+    class Meta:
+        verbose_name_plural = "Categories"
+    
+    
+    def __str__(self):
+        return self.name
+
 
 
 class Address(models.Model):
@@ -33,8 +47,8 @@ class Address(models.Model):
         return f"{self.address_line_1}, {self.address_line_2}, {self.city} {self.zip_code}"
     
     
-class Meta:
-    verbose_name_plural = 'Addresses'
+    class Meta:
+        verbose_name_plural = 'Addresses'
     
     
 class ColourVariation(models.Model):
@@ -63,6 +77,9 @@ class Product(models.Model):
     active = models.BooleanField(default=False)
     available_colours = models.ManyToManyField(ColourVariation)
     available_sizes = models.ManyToManyField(SizeVariation)
+    product_category = models.ForeignKey(Category, related_name='primary_products', blank=True, null=True, on_delete=models.CASCADE)
+    secondary_category = models.ManyToManyField(Category, blank=True)
+    stock = models.IntegerField(default=0)
     
     def __str__(self):
         return self.title
@@ -79,6 +96,11 @@ class Product(models.Model):
     
     def get_price(self):
         return "{:.2f}".format(self.price / 100)
+    
+    @property
+    def in_stock(self):
+        return self.stock > 0
+        
     
 class OrderItem(models.Model):
     order = models.ForeignKey("Order", related_name='items', on_delete=models.CASCADE)
